@@ -2,6 +2,7 @@ package com.deltaa.todo.domain;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,10 +15,13 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Where;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name="task")
+@Where(clause = "markForDelete='false'")
 public class Task {
 	
 	@Id
@@ -25,7 +29,7 @@ public class Task {
 	@Column(name = "id")
 	private Long id;
 	
-	@Column(name="title", nullable = false, unique = true)
+	@Column(name="title", nullable = false)
 	private String title;
 	
 	@NotNull
@@ -37,25 +41,28 @@ public class Task {
 	
 	@Column(name="date_completed")
 	@JsonFormat(pattern="yyyy-MM-dd")
-	private Date completed;
+	private Date completedAt;
 	
-	@Column(name="date_due")
+	@Column(name="date_remind")
 	@JsonFormat(pattern="yyyy-MM-dd")
-	private Date due;
+	private Date remindMeAt;
 	
 	@Column(name="date_created")
 	@JsonFormat(pattern = "yyyy-MM-dd'T'hh:mm:ss")
-	private Date created;
+	private Date createdAt;
 	
 	@Column(name="date_modified")
 	@JsonFormat(pattern="yyyy-MM-dd'T'hh:mm:ss")
-	private Date modified;
+	private Date modifiedAt;
 
 	@Column(name="markfordelete")
-	private boolean markForDelete = false;
+	private boolean markForDelete;
 	
-	@ManyToOne
-	@JoinColumn(name="tasklist_id", nullable=false)
+	@Column(name="status")
+	private TaskStatus status;
+	
+	@ManyToOne(cascade=CascadeType.ALL)
+	@JoinColumn(name="tasklist_id")
 	private TaskList taskList;
 	
 	public Task() {
@@ -64,12 +71,17 @@ public class Task {
 	
 	@PrePersist
 	protected void onCreate() {
-		this.created = new Date();
+		this.status = TaskStatus.OPEN;
+		this.markForDelete = false;
+		this.createdAt = new Date();
 	}
 	
 	@PreUpdate
 	protected void onUpdate() {
-		this.modified = new Date();
+		if(this.status.equals(TaskStatus.COMPLETED)) {
+			this.completedAt=new Date();
+		}
+		this.modifiedAt = new Date();
 	}
 	
 	public Long getId() {
@@ -111,39 +123,31 @@ public class Task {
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
-
-	public Date getCompleted() {
-		return completed;
-	}
-
-	public void setCompleted(Date completed) {
-		this.completed = completed;
-	}
-
-	public Date getDue() {
-		return due;
-	}
-
-	public void setDue(Date due) {
-		this.due = due;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getModified() {
-		return modified;
-	}
-
-	public void setModified(Date modified) {
-		this.modified = modified;
-	}
 	
+	public Date getRemindMeAt() {
+		return remindMeAt;
+	}
+
+	public void setRemindMeAt(Date remindMeAt) {
+		this.remindMeAt = remindMeAt;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(Date modifiedAt) {
+		this.modifiedAt = modifiedAt;
+	}
+
 	public boolean isMarkForDelete() {
 		return markForDelete;
 	}
@@ -151,11 +155,28 @@ public class Task {
 	public void setMarkForDelete(boolean markForDelete) {
 		this.markForDelete = markForDelete;
 	}
+	
+
+	public TaskStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(TaskStatus status) {
+		this.status = status;
+	}
+
+	public Date getCompletedAt() {
+		return completedAt;
+	}
+
+	public void setCompletedAt(Date completedAt) {
+		this.completedAt = completedAt;
+	}
 
 	@Override
 	public String toString() {
 		return "Task [id=" + id + ", title=" + title + ", description=" + description + ", tag=" + tag + ", completed="
-				+ completed + ", due=" + due + ", created=" + created + ", modified=" + modified + ", markForDelete="
-				+ markForDelete + ", taskList=" + taskList + "]";
+				+ completedAt + ", remindMeAt=" + remindMeAt + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt
+				+ ", markForDelete=" + markForDelete + ", status=" + status + "]";
 	}	
 }

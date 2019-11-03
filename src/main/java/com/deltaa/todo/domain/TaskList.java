@@ -1,7 +1,7 @@
 package com.deltaa.todo.domain;
 
-import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -12,14 +12,15 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
-@Table(name="task_list")
+@Table(name="tasklist")
 public class TaskList {
 	
 	@Id
@@ -28,20 +29,29 @@ public class TaskList {
 	private String id;
 	
 	@Column(name="title", length=50)
-	@NotNull
 	@Size(max=50)
 	private String title;
 	
-	@OneToMany (mappedBy = "taskList", cascade = CascadeType.ALL, fetch = FetchType.EAGER, targetEntity = Task.class)
+	@OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL, fetch = FetchType.EAGER, targetEntity = Task.class)
 	private List<Task> tasks;
 	
 	@Column(name="date_created")
 	@JsonFormat(pattern = "yyyy-MM-dd'T'hh:mm:ss")
-	private Date created;
+	private Date createdAt;
 	
 	@Column(name="date_modified")
 	@JsonFormat(pattern="yyyy-MM-dd'T'hh:mm:ss")
-	private Date modified;
+	private Date modifiedAt;
+	
+	@PrePersist
+	protected void onCreate() {
+		this.createdAt = new Date();
+	}
+	
+	@PreUpdate
+	protected void onUpdate() {
+		this.modifiedAt = new Date();
+	}
 
 	public String getId() {
 		return id;
@@ -64,38 +74,41 @@ public class TaskList {
 	}
 
 	public void setTasks(List<Task> tasks) {
-		this.tasks = tasks;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getModified() {
-		return modified;
-	}
-
-	public void setModified(Date modified) {
-		this.modified = modified;
+		for(Task task:tasks) {
+			System.out.println("for loop setTask called::::"+task);
+			addTask(task);
+		}
 	}
 	
-	public void addTask(Task task) {
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getModifiedAt() {
+		return modifiedAt;
+	}
+
+	public void setModifiedAt(Date modifiedAt) {
+		this.modifiedAt = modifiedAt;
+	}
+
+	public void addTask(Task newTask) {
+	    System.out.println("addTask called....."+newTask);
 		if(this.tasks == null) {
 			this.tasks = new ArrayList<Task>();
 		}
-		this.tasks.add(task);
+		this.tasks.add(newTask);
+		newTask.setTaskList(this);
+		System.out.println("addToTask completed...."+newTask);
 	}
 	
 	@Override
 	public String toString() {
-		return "TaskList [id=" + id + ", title=" + title + ", tasks=" + tasks + ", created=" + created + ", modified="
-				+ modified + "]";
+		return "TaskList [id=" + id + ", title=" + title + ", tasks=" + tasks + ", created=" + createdAt + ", modified="
+				+ modifiedAt + "]";
 	}
-	
-	
-	
 }
