@@ -8,7 +8,7 @@ public enum TaskStatus {
 		@Override
 		@JsonValue
 		public String toString() {
-			return "open";
+			return "OPEN";
 		}
 	},
 	
@@ -16,7 +16,7 @@ public enum TaskStatus {
 		@Override
 		@JsonValue
 		public String toString() {
-			return "completed";
+			return "COMPLETED";
 		}
 	}
 
