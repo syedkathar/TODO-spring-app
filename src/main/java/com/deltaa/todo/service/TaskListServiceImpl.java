@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.deltaa.todo.domain.TaskList;
 import com.deltaa.todo.repository.TaskListRepository;
+import com.deltaa.todo.rest.exception.TaskListNotFoundException;
 import com.deltaa.todo.rest.exception.TaskListdAlreadyExistsException;
 import com.deltaa.todo.rest.mapper.v1.TaskListMapper;
 import com.deltaa.todo.service.dto.TaskListDTO;
@@ -42,7 +43,12 @@ public class TaskListServiceImpl implements TaskListService {
 
 	@Override
 	public Optional<TaskListDTO> addOrUpdateTasks(TaskListDTO taskListDTO) {
-		 return Optional.of(taskListRepository.findById(taskListDTO.getId()))
+		if(null != taskListDTO.getId()) {
+			if(!taskListRepository.existsById(taskListDTO.getId())) {
+				throw new TaskListNotFoundException("TaskList id: ["+taskListDTO.getId()+" not exists, please use valid TaskList Id to add/update tasks.");
+			}
+		}
+		return Optional.of(taskListRepository.findById(taskListDTO.getId()))
 	                .filter(Optional::isPresent)
 	                .map(Optional::get)
 	                .map(taskList -> {
